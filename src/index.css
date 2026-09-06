@@ -1,3 +1,59 @@
+/* Floating Install Button */
+.floating-install {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--card-bg);
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 9999;
+  border: 1px solid var(--accent);
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.floating-install span {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.floating-install button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.floating-install button:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.floating-install button.close-btn {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 4px;
+  font-size: 16px;
+  margin-left: -5px;
+}
+
+.floating-install button.close-btn:hover {
+  color: var(--text-primary);
+  transform: scale(1.1);
+}
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;

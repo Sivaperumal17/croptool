@@ -19,9 +19,38 @@ const CARD_TYPES = {
   large_1_3: { label: '1/3 A4 Size', width: 745, height: 1836 }
 };
 
+const Typewriter = ({ text, delay = 0, speed = 50 }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  
+  useEffect(() => {
+    let timeout;
+    let interval;
+    
+    timeout = setTimeout(() => {
+      let i = 0;
+      interval = setInterval(() => {
+        setDisplayedText(text.slice(0, i + 1));
+        i++;
+        if (i >= text.length) clearInterval(interval);
+      }, speed);
+    }, delay);
+    
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [text, delay, speed]);
+
+  return <span>{displayedText}<span className="cursor-blink">|</span></span>;
+};
+
 function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [activeTool, setActiveTool] = useState('pdf'); // 'pdf' or 'photo'
+  
+  // PWA Install State
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
   
   // PDF State
   const [file, setFile] = useState(null);
@@ -52,9 +81,36 @@ function App() {
 
   // Splash Screen Timer
   useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 2500);
+    const timer = setTimeout(() => setShowSplash(false), 6000);
     return () => clearTimeout(timer);
   }, []);
+
+  // PWA Install Prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+      // Auto-hide after 10 seconds
+      setTimeout(() => setShowInstallBtn(false), 10000);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+      setShowInstallBtn(false);
+    }
+  };
 
   // Load PDF when file changes
   useEffect(() => {
@@ -304,10 +360,14 @@ function App() {
       <div className="splash-screen">
         <div className="splash-logo-container">
           <div className="splash-logo-ring"></div>
-          <img src="/logo.png" alt="Logo" className="splash-logo" />
+          <img src="/pwa-512x512.png" alt="Logo" className="splash-logo" />
         </div>
-        <h1 className="splash-title">Xerox Pro Workspace</h1>
-        <p className="splash-subtitle">Loading premium environment...</p>
+        <h1 className="splash-title">
+          <Typewriter text="Xerox Pro Workspace" delay={400} speed={30} />
+        </h1>
+        <p className="splash-subtitle">
+          <Typewriter text="Loading premium environment..." delay={1200} speed={25} />
+        </p>
       </div>
     );
   }
@@ -512,6 +572,15 @@ function App() {
           )}
         </main>
       </div>
+      )}
+
+      {/* PWA Floating Install Button */}
+      {showInstallBtn && (
+        <div className="floating-install">
+          <span>Install App for easier access!</span>
+          <button onClick={handleInstallClick}>Install</button>
+          <button className="close-btn" onClick={() => setShowInstallBtn(false)}>✕</button>
+        </div>
       )}
 
       {/* Hidden canvas for image cropping extraction */}
